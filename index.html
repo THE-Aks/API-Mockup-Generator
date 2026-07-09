@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Mockup Generator</title>
@@ -11,16 +11,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
-</head>
-<body>
+  </head>
+  <body>
 
-<div class="ambient-bg" aria-hidden="true">
-  <div class="ambient-blob ambient-blob--1"></div>
-  <div class="ambient-blob ambient-blob--2"></div>
-  <div class="ambient-grid"></div>
-</div>
+  <div class="ambient-bg" aria-hidden="true">
+    <div class="ambient-blob ambient-blob--1"></div>
+    <div class="ambient-blob ambient-blob--2"></div>
+    <div class="ambient-grid"></div>
+  </div>
 
-<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
 <nav class="navbar">
   <div class="nav-inner">
@@ -298,3 +298,37 @@ stock"></textarea>
 
     </div>
   </section>
+
+  <section class="telemetry" id="telemetry">
+    <div class="section-heading">
+      <span class="section-label">02 — Telemetry</span>
+      <h2>Live request &amp; schema-validation feed</h2>
+    </div>
+    <div class="telemetry-panel">
+      <div class="telemetry-header">
+        <span class="telemetry-header-item">Method</span>
+        <span class="telemetry-header-item">Endpoint</span>
+        <span class="telemetry-header-item">Status</span>
+        <span class="telemetry-header-item">Latency</span>
+        <span class="telemetry-header-item">Size</span>
+        <span class="telemetry-header-item">Schema</span>
+        <span class="telemetry-header-item">Time</span>
+      </div>
+      <div class="telemetry-list" id="telemetryList">
+        <div class="telemetry-empty" id="telemetryEmpty">No requests intercepted yet. Use the API Tester above to generate traffic.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>Built with HTML, CSS &amp; vanilla JavaScript — no backend, no build step, no dependencies.</p>
+</footer>
+
+<!-- Loading bar -->
+<div class="progress-bar" id="progressBar"><div class="progress-bar-fill" id="progressBarFill"></div></div>
+
+<script src="script.js"></script>
+  </body>
+</html>
