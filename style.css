@@ -130,4 +130,45 @@ button, select, input, textarea {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(40px, 30px) scale(1.08); }
 }
-git  tg9
+
+/* Nav */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(9, 11, 18, 0.72);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.nav-logo-mark { color: var(--primary); font-size: 14px; }
+.nav-logo-accent { color: var(--secondary); }
+
+.nav-links {
+  display: flex;
+  gap: 28px;
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.nav-links a { transition: color 0.2s ease; }
+.nav-links a:hover { color: var(--text); }
