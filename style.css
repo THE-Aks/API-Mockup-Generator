@@ -85,3 +85,49 @@ button, select, input, textarea {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Background */
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ambient-grid {
+  position: absolute;
+  inset: -10%;
+  background-image:
+    linear-gradient(rgba(148, 130, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 130, 255, 0.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, black 40%, transparent 80%);
+}
+
+.ambient-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.35;
+  animation: drift 22s ease-in-out infinite;
+}
+
+.ambient-blob--1 {
+  width: 520px; height: 520px;
+  top: -140px; left: -120px;
+  background: radial-gradient(circle, var(--primary), transparent 70%);
+}
+
+.ambient-blob--2 {
+  width: 480px; height: 480px;
+  top: 220px; right: -160px;
+  background: radial-gradient(circle, var(--secondary), transparent 70%);
+  animation-delay: -11s;
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, 30px) scale(1.08); }
+}
+git  tg9
