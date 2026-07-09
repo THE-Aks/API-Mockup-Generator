@@ -115,5 +115,186 @@
   </section>
 
 
-</body>
-</html>
+  <section class="main-grid">
+
+    <div class="panel" id="configPanel">
+      <div class="panel-header">
+        <h3 class="panel-title">Configuration</h3>
+        <p class="panel-subtitle">Describe your API or import an existing specification.</p>
+      </div>
+
+      <div class="panel-tabs" role="tablist">
+        <button class="tab-btn is-active" data-tab="nl" role="tab">Natural Language</button>
+        <button class="tab-btn" data-tab="openapi" role="tab">OpenAPI Import</button>
+        <button class="tab-btn" data-tab="postman" role="tab">Postman Import</button>
+      </div>
+
+      <div class="input-tab-panel is-active" data-panel="nl">
+        <label class="field-label" for="nlInput">Describe the API you need</label>
+        <textarea id="nlInput" class="code-input" rows="9" placeholder="Create an API for an online bookstore.
+Each book should have:
+
+id
+title
+author
+price
+genre
+publishedYear
+rating
+stock"></textarea>
+        <button class="btn btn--primary btn--block" id="btnParseNL">
+          <span class="btn-label">Generate Schema</span>
+        </button>
+      </div>
+
+      <div class="input-tab-panel" data-panel="openapi">
+        <label class="field-label" for="openapiInput">Paste an OpenAPI specification (JSON)</label>
+        <textarea id="openapiInput" class="code-input" rows="9" placeholder='{
+  "info": { "title": "Bookstore API" },
+  "paths": { "/books": { "get": {} } },
+  "components": {
+    "schemas": {
+      "Book": {
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "price": { "type": "number" }
+        },
+        "required": ["id", "title"]
+      }
+    }
+  }
+}'></textarea>
+        <button class="btn btn--primary btn--block" id="btnParseOpenAPI">
+          <span class="btn-label">Parse Specification</span>
+        </button>
+      </div>
+
+      <div class="input-tab-panel" data-panel="postman">
+        <label class="field-label" for="postmanInput">Paste a Postman Collection (JSON)</label>
+        <textarea id="postmanInput" class="code-input" rows="9" placeholder='{
+  "info": { "name": "Bookstore Collection" },
+  "item": [
+    { "name": "Get Books", "request": { "method": "GET", "url": { "raw": "{{base_url}}/books" } } },
+    { "name": "Create Book", "request": { "method": "POST", "url": { "raw": "{{base_url}}/books" } } }
+  ]
+}'></textarea>
+        <button class="btn btn--primary btn--block" id="btnParsePostman">
+          <span class="btn-label">Import Collection</span>
+        </button>
+      </div>
+
+      <div class="postman-preview" id="postmanPreview" hidden>
+        <h4>Detected Requests</h4>
+        <ul class="postman-list" id="postmanList"></ul>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="resource-name-row">
+        <label class="field-label" for="resourceNameInput">Resource name</label>
+        <div class="resource-input-wrap">
+          <span class="resource-prefix">/api/</span>
+          <input type="text" id="resourceNameInput" value="items" spellcheck="false">
+        </div>
+      </div>
+
+      <h4 class="subpanel-title">Schema Builder</h4>
+      <div class="schema-table-wrap">
+        <table class="schema-table">
+          <thead>
+            <tr>
+              <th>Field Name</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Example</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="schemaTableBody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn--ghost btn--sm" id="btnAddField">+ Add Field</button>
+
+      <div class="divider"></div>
+
+      <div class="mock-controls">
+        <div class="mock-count-row">
+          <label class="field-label" for="mockCount">Number of objects</label>
+          <input type="number" id="mockCount" min="1" max="100" value="10">
+        </div>
+        <button class="btn btn--secondary btn--block" id="btnGenerateMock">
+          <span class="btn-label">Generate Mock Data</span>
+        </button>
+      </div>
+
+      <div class="validation-banner" id="validationBanner" hidden></div>
+    </div>
+
+    <div class="panel" id="outputPanel">
+      <div class="panel-header">
+        <h3 class="panel-title">Live Output</h3>
+        <p class="panel-subtitle">Generated endpoints and mock responses.</p>
+      </div>
+
+      <div class="panel-tabs" role="tablist">
+        <button class="tab-btn is-active" data-otab="json" role="tab">JSON Viewer</button>
+        <button class="tab-btn" data-otab="endpoints" role="tab">Endpoints</button>
+        <button class="tab-btn" data-otab="tester" role="tab">API Tester</button>
+        <button class="tab-btn" data-otab="sdk" role="tab">Client SDK</button>
+      </div>
+
+      <div class="output-tab-panel is-active" data-opanel="json">
+        <div class="viewer-toolbar">
+          <span class="viewer-hint">Pretty-printed &amp; syntax highlighted</span>
+          <div class="viewer-actions">
+            <button class="btn-icon" id="btnCopyJson" title="Copy JSON">Copy</button>
+            <button class="btn-icon" id="btnDownloadJson" title="Download JSON">Download</button>
+          </div>
+        </div>
+        <pre class="json-viewer" id="jsonViewer"><code class="json-empty">// Generate mock data to see output here</code></pre>
+      </div>
+
+      <div class="output-tab-panel" data-opanel="endpoints">
+        <div class="endpoints-empty" id="endpointsEmpty">No endpoints yet — generate a schema first.</div>
+        <ul class="endpoints-list" id="endpointsList"></ul>
+      </div>
+
+      <div class="output-tab-panel" data-opanel="tester">
+        <div class="tester-row">
+          <select id="testerMethod">
+            <option>GET</option>
+            <option>POST</option>
+            <option>PUT</option>
+            <option>DELETE</option>
+          </select>
+          <input type="text" id="testerEndpoint" placeholder="/api/items" spellcheck="false">
+          <button class="btn btn--primary" id="btnSend">Send</button>
+        </div>
+        <div class="tester-response" id="testerResponseWrap" hidden>
+          <div class="tester-response-meta">
+            <span class="status-badge" id="testerStatusBadge">200</span>
+            <span id="testerLatency" class="tester-meta-item">— ms</span>
+            <span id="testerSize" class="tester-meta-item">— B</span>
+          </div>
+          <pre class="json-viewer" id="testerResponse"></pre>
+        </div>
+      </div>
+
+      <div class="output-tab-panel" data-opanel="sdk" id="sdk-section">
+        <div class="panel-tabs panel-tabs--nested" role="tablist">
+          <button class="tab-btn is-active" data-sdk="javascript" role="tab">JavaScript</button>
+          <button class="tab-btn" data-sdk="typescript" role="tab">TypeScript</button>
+          <button class="tab-btn" data-sdk="react" role="tab">React</button>
+        </div>
+        <div class="viewer-toolbar">
+          <span class="viewer-hint">Client code generated from the current schema.</span>
+          <div class="viewer-actions">
+            <button class="btn-icon" id="btnCopySdk" title="Copy SDK code">Copy</button>
+          </div>
+        </div>
+        <pre class="json-viewer" id="sdkCode"></pre>
+      </div>
+
+    </div>
+  </section>
