@@ -3,7 +3,7 @@
   'use strict';
 
 // Data Banks
-  const FIRST_NAMES = ['Aloo', 'Maya', 'Noah', 'Zara', 'Leo', 'Priya', 'Ethan', 'Amara', 'Kai', 'Sofia', 'Ravi', 'Elena', 'Omar', 'Lucia', 'Jonas', 'Nia'];
+  const FIRST_NAMES = ['Aiden', 'Maya', 'Noah', 'Zara', 'Leo', 'Priya', 'Ethan', 'Amara', 'Kai', 'Sofia', 'Ravi', 'Elena', 'Omar', 'Lucia', 'Jonas', 'Nia'];
   const LAST_NAMES = ['Chen', 'Okafor', 'Silva', 'Kapoor', 'Nguyen', 'Martinez', 'Andersson', 'Kobayashi', 'Rossi', 'Haddad', 'Novak', 'Fischer'];
   const DOMAINS = ['example.com', 'mailbox.io', 'inboxly.net', 'workmail.co', 'devmail.app'];
   const CITIES = ['Austin', 'Lisbon', 'Nairobi', 'Osaka', 'Toronto', 'Wellington', 'Kolkata', 'Berlin', 'Santiago', 'Dubai'];
@@ -18,7 +18,21 @@
   const pick = (arr) => arr[rand(0, arr.length - 1)];
   const pad = (n) => String(n).padStart(2, '0');
 
- 
+  function uuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
+  function randomDate() {
+    const start = new Date(2019, 0, 1).getTime();
+    const end = new Date(2026, 11, 31).getTime();
+    const d = new Date(start + Math.random() * (end - start));
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
   function randomTimestamp() {
     const start = new Date(2024, 0, 1).getTime();
     const end = Date.now();
@@ -52,7 +66,19 @@
   const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
   const el = {
-   
+    nlInput: $('#nlInput'),
+    openapiInput: $('#openapiInput'),
+    postmanInput: $('#postmanInput'),
+    postmanPreview: $('#postmanPreview'),
+    postmanList: $('#postmanList'),
+    resourceNameInput: $('#resourceNameInput'),
+    schemaTableBody: $('#schemaTableBody'),
+    mockCount: $('#mockCount'),
+    jsonViewer: $('#jsonViewer'),
+    endpointsList: $('#endpointsList'),
+    endpointsEmpty: $('#endpointsEmpty'),
+    testerMethod: $('#testerMethod'),
+    testerEndpoint: $('#testerEndpoint'),
     testerResponseWrap: $('#testerResponseWrap'),
     testerResponse: $('#testerResponse'),
     testerStatusBadge: $('#testerStatusBadge'),
@@ -308,6 +334,7 @@
     }
     let collection;
     try {
+      collection = JSON.parse(raw);
     } catch (e) {
       showToast('Invalid JSON — check your Postman collection syntax', 'error');
       return;
@@ -429,7 +456,16 @@
           return { street: `${rand(10, 999)} ${pick(STREETS)}`, city: pick(CITIES), country: pick(COUNTRIES) };
         }
         return { note: pick(WORDS), verified: Math.random() > 0.5 };
-      
+      case 'url':
+        return `https://${pick(WORDS)}.dev/${name}`;
+      case 'phone':
+        return `+1-${rand(200, 999)}-${rand(200, 999)}-${rand(1000, 9999)}`;
+      case 'category':
+        if (name.includes('genre')) return pick(['Fiction', 'Sci-Fi', 'Mystery', 'Romance', 'Non-Fiction', 'Fantasy']);
+        return pick(CATEGORIES);
+      case 'price':
+        return Number((Math.random() * 480 + 5).toFixed(2));
+      case 'text':
       default:
         if (name.includes('title') || name.includes('product')) return `${pick(PRODUCT_ADJ)} ${pick(PRODUCT_NOUN)}`;
         if (name.includes('name') && !name.includes('username')) return `${pick(FIRST_NAMES)} ${pick(LAST_NAMES)}`;
@@ -445,7 +481,13 @@
   }
 
   function generateMockObject(withId) {
-   
+    const obj = {};
+    state.schema.forEach((field) => {
+      if (!field.name) return;
+      obj[field.name] = generateValueForField(field);
+    });
+    return obj;
+  }
 
   function generateMockData() {
     if (state.schema.length === 0) {
@@ -460,7 +502,34 @@
     showToast(`Generated ${count} mock objects`, 'success');
   }
 
-  
+  // JSON Syntax Highlighting + Viewer
+  function syntaxHighlight(json) {
+    const str = JSON.stringify(json, null, 2);
+    const escaped = escapeHtml(str);
+    return escaped.replace(
+      /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false)\b|null|-?\d+(\.\d+)?([eE][+-]?\d+)?)/g,
+      (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          cls = /:$/.test(match) ? 'json-key' : 'json-string';
+        } else if (/true|false/.test(match)) {
+          cls = 'json-boolean';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+      }
+    );
+  }
+
+  function renderJsonViewer(data) {
+    if (!data || data.length === 0) {
+      el.jsonViewer.innerHTML = '<code class="json-empty">// Generate mock data to see output here</code>';
+      return;
+    }
+    el.jsonViewer.innerHTML = `<code>${syntaxHighlight(data)}</code>`;
+  }
+
   function copyJson() {
     if (state.mockData.length === 0) {
       showToast('Nothing to copy yet', 'error');
