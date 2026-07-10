@@ -556,3 +556,151 @@
     URL.revokeObjectURL(url);
     showToast('Downloaded JSON file', 'success');
   }
+
+   // Endpoints
+  function regenerateEndpoints() {
+    const resource = (state.resourceName || 'items').replace(/\s+/g, '_').toLowerCase();
+    state.resourceName = resource;
+    state.endpoints = [
+      { method: 'GET', path: `/api/${resource}` },
+      { method: 'GET', path: `/api/${resource}/:id` },
+      { method: 'POST', path: `/api/${resource}` },
+      { method: 'PUT', path: `/api/${resource}/:id` },
+      { method: 'DELETE', path: `/api/${resource}/:id` }
+    ];
+    renderEndpoints();
+    el.testerEndpoint.value = `/api/${resource}`;
+    updateStats();
+  }
+
+  function renderEndpoints() {
+    if (state.endpoints.length === 0) {
+      el.endpointsEmpty.hidden = false;
+      el.endpointsList.innerHTML = '';
+      return;
+    }
+    el.endpointsEmpty.hidden = true;
+    el.endpointsList.innerHTML = state.endpoints.map((ep) => `
+      <li class="endpoint-item">
+        <span class="method-badge method-badge--${ep.method.toLowerCase()}">${ep.method}</span>
+        <span class="endpoint-url">${ep.path}</span>
+        <span class="endpoint-full">https://mockapi.local${ep.path}</span>
+      </li>
+    `).join('');
+  }
+
+  // Validation
+  function runValidation() {
+    const requiredFields = state.schema.filter((f) => f.required).map((f) => f.name);
+    const missing = new Set();
+
+    state.mockData.forEach((obj) => {
+      requiredFields.forEach((name) => {
+        if (obj[name] === undefined || obj[name] === null || obj[name] === '') {
+          missing.add(name);
+        }
+      });
+    });
+
+    const valid = missing.size === 0;
+    state.validation = { valid, missing: [...missing] };
+
+    el.validationBanner.hidden = false;
+    if (valid) {
+      el.validationBanner.className = 'validation-banner validation-banner--success';
+      el.validationBanner.textContent = '✓ Schema Valid — all required fields present across generated objects.';
+    } else {
+      el.validationBanner.className = 'validation-banner validation-banner--error';
+      el.validationBanner.textContent = `✗ Schema Validation Failed — missing required propert${missing.size > 1 ? 'ies' : 'y'}: ${[...missing].join(', ')}`;
+    }
+    updateStats();
+    return valid;
+  }
+
+  // API Tester
+  function simulateResponse(method, path) {
+    const isCollection = !/\/:?id$|\/\d+$|\/[a-f0-9-]{8,}$/i.test(path) && !path.includes('%id%');
+    // determine if path targets a single item (ends in something other than the bare resource)
+    const resourceBase = `/api/${state.resourceName}`;
+    const targetsItem = path.replace(/\/$/, '') !== resourceBase;
+
+    if (state.mockData.length === 0) {
+      return { status: 404, body: { error: 'No mock data generated yet. Click "Generate Mock Data" first.' } };
+    }
+
+    switch (method) {
+      case 'GET':
+        if (targetsItem) {
+          return { status: 200, body: state.mockData[0] };
+        }
+        return { status: 200, body: state.mockData };
+      case 'POST': {
+        const created = generateMockObject();
+        return { status: 201, body: created };
+      }
+      case 'PUT': {
+        const updated = { ...state.mockData[0], ...generateMockObject() };
+        return { status: 200, body: updated };
+      }
+      case 'DELETE':
+        return { status: 200, body: { success: true, message: 'Resource deleted' } };
+      default:
+        return { status: 405, body: { error: 'Method not allowed' } };
+    }
+  }
+
+  function sendTestRequest() {
+    const method = el.testerMethod.value;
+    const path = el.testerEndpoint.value.trim() || `/api/${state.resourceName}`;
+    const btn = $('#btnSend');
+
+    withLoading(btn, () => {
+      const latency = rand(18, 240);
+      const { status, body } = simulateResponse(method, path);
+      const json = JSON.stringify(body);
+      const sizeBytes = new Blob([json]).size;
+
+      el.testerResponseWrap.hidden = false;
+      el.testerStatusBadge.textContent = status;
+      el.testerStatusBadge.className = `status-badge${status >= 400 ? ' status-badge--error' : ''}`;
+      el.testerLatency.textContent = `${latency} ms`;
+      el.testerSize.textContent = `${sizeBytes} B`;
+      el.testerResponse.innerHTML = `<code>${syntaxHighlight(body)}</code>`;
+
+      logTelemetry(method, path, status, latency, sizeBytes);
+    }, rand(300, 700));
+  }
+
+// Telemetry
+  function logTelemetry(method, path, status, latency, size) {
+    const schemaValid = state.validation ? state.validation.valid : true;
+    const entry = {
+      method, path, status, latency, size,
+      schemaValid,
+      time: new Date().toLocaleTimeString()
+    };
+    state.requests.unshift(entry);
+    if (state.requests.length > 50) state.requests.pop();
+    renderTelemetry();
+    updateStats();
+  }
+
+  function renderTelemetry() {
+    if (state.requests.length === 0) {
+      el.telemetryEmpty.hidden = false;
+      return;
+    }
+    el.telemetryEmpty.hidden = true;
+
+    el.telemetryList.innerHTML = state.requests.map((r) => `
+      <div class="log-entry">
+        <span class="log-method log-method--${r.method.toLowerCase()}">${r.method}</span>
+        <span class="log-endpoint">${escapeHtml(r.path)}</span>
+        <span class="${r.status >= 400 ? 'log-status--err' : 'log-status--ok'}">${r.status} ${r.status >= 400 ? 'ERR' : 'OK'}</span>
+        <span>${r.latency} ms</span>
+        <span>${r.size} B</span>
+        <span class="${r.schemaValid ? 'log-schema--valid' : 'log-schema--invalid'}">${r.schemaValid ? 'Valid' : 'Invalid'}</span>
+        <span class="log-time">${r.time}</span>
+      </div>
+    `).join('');
+  }
