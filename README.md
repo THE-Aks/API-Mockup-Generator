@@ -50,7 +50,7 @@ This tool generates a fully working mock API in seconds, from whatever you alrea
 That's it — no `npm install`, no server, no build step.
 
 ```
-git clone <your-repo-url>
+git clone <(https://github.com/THE-Aks/API-Mockup-Generator)>
 cd API-Mockup-Generator
 open index.html   # or just double-click it
 ```
